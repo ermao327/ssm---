@@ -1,0 +1,825 @@
+﻿
+<html lang="en">
+
+<head>
+    <meta http-equiv= "Content-Type" content="text/html; charset=UTF-8"/>
+    <title>课程</title>
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/iconfont/font_1/iconfont.css">
+    <link rel="stylesheet" href="/iconfont/font_0/iconfont.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/jquery.js"></script>
+    <script src="/js/bootstrap.js"></script>
+    <script src="/js/swiper.js"></script>
+    <script src="/js/front-index.js"></script>
+    <script src="/js/template-web.js"></script>
+    <script src="/js/sweetalert.js"></script>
+    <style>
+    html,
+    body {
+        height: 100%;
+    }
+
+    body>.wrap-cc {
+        min-height: 100%;
+    }
+
+    .content-cc {
+        /* padding-bottom 等于 footer 的高度 */
+        padding-bottom: 80px;
+    }
+
+    .footer-cc {
+        width: 100%;
+        height: 80px;
+        /* margin-top 为 footer 高度的负值 */
+        margin-top: -80px;
+    }
+    </style>
+    
+    <script>
+    $(function() {
+        $(".arrow").click(function() {
+            $(this).parent().next().toggle();
+        });
+
+        $(".title-ul>li").on('click', function() {
+            console.log($(this));
+            $(this).addClass('current').siblings().removeClass("current");
+            var panelId = "#" + $(this).attr("name");
+            $(this).parent().siblings().css({
+                'display': 'none'
+            });
+            $(panelId).css({
+                'display': 'block'
+            });
+        });
+        loadChapter();
+        loadRecCourse();
+    });
+    </script>
+    <script type="text/javascript">
+    	/**
+    	*资源校验方法
+    	*验证用户积分或金币是否足够
+    	*/
+    	function checkResource(resource_id,path)
+    	{
+    	
+    		var course_id = $("#course_id_holder").val();
+    		$.ajax(
+    		{
+    			url:'/resource/checkup',
+    			data:{"resource_id":resource_id,"path":path},
+    			type:'post',
+                dataType:"json",
+    			success:function(data){
+    				// data=JSON.parse(data);
+    				if(data.success)
+    				{
+   						let cost_number = data.obj.cost_number;
+    					if(data.obj.cost_type==0){
+    						var cost_type = "积分";
+    					}else{
+    						var cost_type = "金币";
+    					}
+    					
+    					if(data.obj.file_type=="mp4")
+    					{
+    						/*sweetalert框架的弹窗方法  */
+    						swal("成功支付"+cost_number + cost_type+"!即将进入播放页面...");
+    						setTimeout(function()
+							{
+    						location.href =`/resource/showRs?course_id=`+course_id+`&resource_id=`+resource_id+`&path=`+path;
+							}, 1000);
+	    					return;
+    					}
+    					swal("成功支付"+cost_number + cost_type+"!即将开始下载...");
+    					location.href='/upload/resources/${data.obj.path}';
+    					return;
+    				}
+    				swal(data.msg);
+    			}
+    		});
+    	}
+    	
+    	/**
+    	*加载当前课程所在类别下点击量前三多的课程
+    	*/
+    	function loadRecCourse(){
+    		var course_id = $("#course_id_holder").val();
+    		$.ajax(
+    		{
+    			url:'/course/loadRecourse',
+    			data:{
+    			    "course_id":course_id
+                },
+    			type:'post',
+    			success:function(data)
+    			{
+    				var top3s = data.obj;
+    				var html = template("top3Courses", {c : top3s});
+    				$(".col-md-3").append(html);
+    			}
+    		});
+    	}
+    	
+    	
+    </script>
+    <script type="text/html" id="top3Courses">
+		{{ each c  item }}
+    		<div class="row recommd-course">
+           	   <div class="col-md-4">
+                	<img src="/images/timg.jpg" alt="">
+        	   </div>
+         	   <div class="col-md-8">
+         	        <div>
+						<a href="/chapter/showChapterFront?course_id={{item.id}}">{{item.course_name}}</a>
+					</div>
+         	        <div>{{item.course_info}}</div>
+          	   </div>
+     	   </div>
+		{{/each}}
+    </script>
+
+    <script>
+        function loadChapter() {
+            var course_id = $("#course_id_holder").val();
+            $.ajax(
+                {
+                    url: '/chapter/showChapterFront',
+                    data: {
+                        "course_id": course_id
+                    },
+                    type: 'post',
+                    success: function (data) {
+                        var html = template("chapterList", data);
+                        console.log(data.obj);
+                        $("#ca").append(html);
+                    }
+                });
+        }
+    </script>
+
+    <script type="text/html" id="chapterList">
+        {{ each obj item }}
+            <li>
+                <div class="row">
+                    <div class="col-md-12 course-title">
+                        <i class="icon  i-round iconfont icon-weibiaoti-"></i>
+                        {{item.title}}
+                        <span> {{item.info}} </span>
+                        <i class="glyphicon glyphicon-triangle-bottom pull-right arrow"></i>
+                    </div>
+                    <ul class="lesson-title">
+                        <!-- 此处为资源列表 -->
+                        {{ each item.resources re }}
+                            <li class="col-md-11 col-md-offset-1 padding-10 ">
+                                <span class="glyphicon glyphicon-triangle-right icon-right"> </span>
+                                <a onclick="checkResource({{re.id}},'{{item.title}}-{{re.title}}')">
+                                    <span>{{re.title}}</span>
+                                    <span>
+                                        (
+                                        需要{{re.cost_number}}点
+                                        <if test="{{re.cost_type}} == 0">积分</if>
+                                        <if test="{{re.cost_type}} == 1">金币</if>
+                                        )
+                                    </span>
+                                </a>
+                            </li>
+                        {{/each }}
+                    </ul>
+                </div>
+            </li>
+        {{/each }}
+    </script>
+
+
+    <!--页面头部分js开始-->
+    <script>
+        $(function(){
+            showSumA();
+            $(".signBtn").click(function() {
+                $(".expe").show().addClass('animated forward fadeOutUp');
+
+                $(".signBtn").html("已签到").unbind("click").addClass('gray').removeClass('hoverRed');
+
+            });
+
+
+            var isLogin = true;
+            if (${sessionUser == null }) {
+                isLogin = false;
+            }
+            console.log('${sessionUser.login_name}');
+            changeUserDiv(isLogin);
+
+            var msg = '${errorMsg}';
+            if(msg){alert(msg);}
+
+            $("#head-form").show();
+            if(location.href=='http://localhost/gp/front_record'){
+                $("#head-form").hide();
+            }
+        });
+
+        //前台显示用户剩余积分和金币
+        function showSumA(){
+            $.ajax({
+                url : '/gp/findFrontSumByUid',
+                type : 'post',
+                dataType : 'json',
+                success : function(data){
+                    $("#pointSum").html(data.obj.sum_point_count);
+                    $("#goldSum").html(data.obj.sum_gold_count);
+                }
+            })
+        }
+
+        //签到后更新时间 ajax
+        function loginDate(id){
+            // alert("签到方法执行")
+            $.ajax({
+                url:'/user/updateLoginDate',
+                data:{
+                    "id":id
+                },
+                dataType:'json',
+                type:'post',
+                success:function(data){
+                    showSumA();
+                }
+            });
+        }
+
+        function openUserModal(isRegist) {
+            if (isRegist) { //是注册
+                $("#regist_modal").modal("show");
+                return;
+            }
+            //是登录
+            $("#login_modal").modal("show");
+        }
+
+        function changeUserDiv(isLogin) {
+            // alert("进去changeUserDiv"+isLogin);
+            if (isLogin) { //
+                $("#loginOff").hide();
+
+                $("#loginOn").show();
+                $("#login_modal").modal("hide");
+
+                //判断是否需要签到
+                $.ajax({
+                    url:'/user/findLoginDate',
+                    dataType:'json',
+                    type:'get',
+                    success:function(data){
+                        if (!data) {
+                            $(".signBtn").html("已签到").unbind("click").addClass('gray').removeClass('hoverRed');
+                        }
+                    }
+                });
+
+
+            } else {
+                $("#loginOn").hide();
+                $("#loginOff").show();
+            }
+        }
+
+        //执行登录
+        function doLogin(){
+            $("#errMsg").text("");
+            var login_name = $("#login_modal [name=login_name]").val();
+            var password = $("#login_modal [name=password]").val();
+            if(login_name == ""){
+                $("#errMsg").text("用户名不能为空");
+                return false;
+            }
+
+            if(password == ""){
+                $("#errMsg").text("密码不能为空");
+                return false;
+            }
+
+            $.ajax({
+                url:'/user/loginFront',
+                data:{
+                    "login_name":login_name,
+                    "password":password
+                },
+                type:'post',
+                dataType:'json',
+                success:function(data) {
+                    if(data.success){
+                        var isLogin = true;
+                        location.href="/login";
+                        changeUserDiv(isLogin);
+                    }else{
+                        $("#errMsg").text("用户名或者密码错误");
+                    }
+                }
+            });
+        }
+
+        //修改用户信息时，校验旧密码
+        function  checkPassword(pwd){
+            if (pwd != $("#modifyForm [name=password]").val() ) {
+                var $span = $("#modifyForm [name=password]").parent().find("span");
+                $span.html("旧密码输入有误，请重新输入")
+                $span.css("color","red");
+                $("#modifyForm [name=password]").empty();
+                $("#modifyForm [name=password]").focus();
+            }
+            if (pwd == $("#modifyForm [name=password]").val() ) {
+                var $span = $("#modifyForm [name=password]").parent().find("span");
+                $span.html("旧密码输入正确");
+                $span.css("color","green");
+                $("#modifyForm [name=newPassword]").focus();
+            }
+        }
+        ////修改用户信息时，重复新密码校验
+        function checkRePassword() {
+            var $span = $("#modifyForm [name=rePassword]").parent().find("span");
+            $span.html("")
+            var str = $("#modifyForm [name=newPassword]").val();
+            var reg = /^[A-Za-z0-9_-]+$/ig;
+            if (!reg.test(str)) {
+                $span.html("密码不能有空格和特殊字符")
+                $span.css("color", "red");
+                $("#modifyForm [name=newPassword]").focus();
+                return;
+            }
+
+            if ($("#modifyForm [name=rePassword]").val() != $("#modifyForm [name=newPassword]").val()) {
+                // var $span = $("#modifyForm [name=rePassword]").parent().find("span");
+                $span.html("两次密码输入不一致，请重新输入")
+                $span.css("color", "red");
+                $("#modifyForm [name=rePassword]").val().empty();
+                $("#modifyForm [name=newPassword]").val().empty();
+                $("#modifyForm [name=newPassword]").focus();
+            }
+            if ($("#modifyForm [name=rePassword]").val() == $("#modifyForm [name=newPassword]").val()) {
+                // var $span = $("#modifyForm [name=rePassword]").parent().find("span");
+                $span.html("密码输入一致")
+                $span.css("color", "green");
+                $("#modifyForm [name=nickname]").focus();
+            }
+
+        }
+        //修改用户信息时校验昵称
+        function checkModifyNickname() {
+            var str = $("#modifyForm [name=nickname]").val();
+            var reg = /^.{1,60}$/ig;
+            if (!reg.test(str)) {
+                $("#modifyBtn").attr("disabled",true);
+                var $span = $("#modifyForm [name=nickname]").parent().find("span");
+                $span.html("昵称不能为空且不超过30个字符")
+                $span.css("color", "red");
+                $("#modifyForm [name=nickname]").focus();
+            }else{
+                $("#modifyBtn").attr("disabled",false);
+                var $span = $("#modifyForm [name=nickname]").parent().find("span");
+                $span.html("")
+                $span.css("color", "green");
+            }
+        }
+        //修改用户信息时校验email
+        function checkModifyEmail() {
+            var email = "${sessionUser.email}";
+            if($("#modifyForm [name=email]").val()==email){
+                $("#modifyForm [name=email]").parent().find("span").html("");
+                $("#modifyBtn").attr("disabled",false);
+                return;
+            }
+            $("#modifyBtn").attr("disabled",true);
+            $.ajax({
+                url:"/user/checkEmail",
+                data:{"email":$("#modifyForm [name=email]").val()},
+                type:"get",
+                success:function (data) {
+                    $("#modifyBtn").attr("disabled",!data.success);
+                    var $span = $("#modifyForm [name=email]").parent().find("span");
+                    $span.html(data.msg)
+                    if(!data.success){
+                        $span.css("color", "red");
+                        $("#modifyForm [name=email]").focus();
+                    }
+                }
+            });
+        }
+    </script>
+    <!--页面头部分js结束-->
+</head>
+
+<body>
+	<!-- 其中存放了${course_id} 示例使用的course_id = 1-->
+	<input type="hidden" id="course_id_holder" value="1"/>
+    <div class="wrap-cc">
+        <div class="content-cc">
+
+            <!--页面头，登录注册部分开始-->
+            <nav class="navbar navbar-default">
+                <div class="container-fluid" style="background: #fff;box-shadow: 5px 5px 5px #eef;padding-left: 20px;">
+                    <!-- Brand and toggle get grouped for better mobile display -->
+                    <div class="navbar-header">
+                        <!--  <a class="navbar-brand" href="#">Brand</a> -->
+                        <img src="/images/com-logo1.png" alt="" width="120" style="margin-right: 20px;">
+                    </div>
+                    <!-- Collect the nav links, forms, and other content for toggling -->
+                    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                        <ul class="nav navbar-nav">
+                            <li><a href="/front_index" class="vertical-middle">免费课程</a></li>
+                            <li><a href="#" class="vertical-middle">职业路径</a></li>
+                        </ul>
+                        <!--搜索框-->
+                        <form id="head-form" action="/front_select" class="navbar-form navbar-left searchInput" style="padding:10px;">
+                            <div class="form-group">
+                                <input class="" placeholder="Search" name="course_name">
+                            </div>
+                            <button type="submit" class="btn btn-default "><span class="glyphicon glyphicon-search"></span></button>
+                        </form>
+
+                        <div id="loginOff" class="regist ccc">
+                            <span style="margin-right: 20px;font-size: 14px;">下载APP</span>
+                            <a href="javascript:openUserModal(false);" class="ccc"  id="loginbt">登录</a> &nbsp;&nbsp;/&nbsp;&nbsp;
+                            <a href="javascript:openUserModal(true);" class="ccc">注册</a>
+                        </div>
+
+
+                        <ul id="loginOn" class="nav navbar-nav navbar-right">
+                            <li class="nav navbar-nav signIn">
+                                <div class="signBtn hoverRed" onclick="loginDate(${sessionUser.id })">签到</div>
+                                <div class="expe">+5经验值</div>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle user-active" data-toggle="dropdown" role="button">
+                                    <img class="img-circle" src="/images/user.jpg" id="userImg">
+                                    <span class="caret"></span>
+                                </a>
+                                <ul class="dropdown-menu userinfo cc">
+                                    <li>
+                                        <img src="/images/user.jpg" class="img-circle" alt="">
+                                        <div class="">
+                                            <p>${sessionUser.nickname} </p>
+                                            <p>金币<span id="goldSum"></span>&nbsp;积分 <span id="pointSum"></span></p>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <a href="/course/findAllCourseForFront">
+                                            <i class="glyphicon glyphicon-edit"></i>我的课程
+                                        </a>
+                                        <a href="/gp/front_record">
+                                            <i class="glyphicon glyphicon-record"></i>积分记录
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#" data-toggle="modal" data-target="#userSet">
+                                            <i class="glyphicon glyphicon-cog"></i>个人设置
+                                        </a>
+                                        <a href="/user/loginOut1"><i class="glyphicon glyphicon-off"></i>退出登录</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    </div>
+                    <!-- /.navbar-collapse -->
+                </div>
+                <!-- /.container-fluid -->
+            </nav>
+            <div class="modal fade" id="userSet" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <h4 class="modal-title" id="myModalLabel">个人信息</h4>
+                        </div>
+                        <form id="modifyForm" action="/user/modifyUser"  class="form-horizontal" method="post">
+                            <input type="hidden" name="id" value="${sessionUser.id }">
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">旧密码：</label>
+                                    <div class="col-sm-6">
+                                        <input onblur="checkPassword(${sessionUser.password })" class="form-control" type="password" name="password" />
+                                        <br/>
+                                        <span style="color:red"></span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">新密码：</label>
+                                    <div class="col-sm-6">
+                                        <input class="form-control" type="password" name="newPassword" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">确认密码：</label>
+                                    <div class="col-sm-6">
+                                        <input onblur="checkRePassword()" class="form-control" type="password" name="rePassword" />
+                                        <br/>
+                                        <span style="color:red"></span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">昵称：</label>
+                                    <div class="col-sm-6">
+                                        <input onblur="checkModifyNickname()" class="form-control" type="text" name="nickname" value="${sessionUser.nickname }"/>
+                                        <br/>
+                                        <span style="color:red"></span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">邮箱：</label>
+                                    <div class="col-sm-6">
+                                        <input onblur="checkModifyEmail()" class="form-control" type="text" name="email"  value="${sessionUser.email }"/>
+                                        <br/>
+                                        <span style="color:red"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-info" data-dismiss="modal" aria-label="Close">关&nbsp;&nbsp;闭</button>
+                                <button type="reset" class="btn btn-info">重&nbsp;&nbsp;置</button>
+                                <button id="modifyBtn" onclick="changeUserInfo()" type="button" class="btn btn-info">确&nbsp;&nbsp;定</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- regist modal -->
+            <div class="modal fade" id="regist_modal" tabindex="-1" role="dialog" aria-labelledby="myRegistLabel">
+                <div class="modal-dialog modal-md" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <h4 class="modal-title" id="myRegistLabel">注册</h4>
+                        </div>
+                        <form id="registForm" action="#" class="form-horizontal" method="post">
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">登录名：</label>
+                                    <div class="col-sm-6">
+                                        <input onblur="checkName()" class="form-control" type="text" name="login_name" />
+                                        <br/>
+                                        <span style="color:red"></span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">密码：</label>
+                                    <div class="col-sm-6">
+                                        <input class="form-control" type="password" name="password" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">确认密码：</label>
+                                    <div class="col-sm-6">
+                                        <input onblur="checkRegistPassword()" class="form-control" type="password" name="rePassword" />
+                                        <br/>
+                                        <span style="color:red"></span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">昵称：</label>
+                                    <div class="col-sm-6">
+                                        <input onblur="checkNickname()" class="form-control" type="text" name="nickname" />
+                                        <br/>
+                                        <span style="color:red"></span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">邮箱：</label>
+                                    <div class="col-sm-6">
+                                        <input onblur="checkEmail()" class="form-control" type="text" name="email" />
+                                        <br/>
+                                        <span style="color:red"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-warning" data-dismiss="modal" aria-label="Close">关&nbsp;&nbsp;闭</button>
+                                <button id="registBtn" type="button" onclick="doRegist()" class="btn btn-info">注&nbsp;&nbsp;册</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- login modal -->
+            <div class="modal fade" id="login_modal" tabindex="-1" role="dialog" aria-labelledby="myLoginLabel" ">
+            <div class="modal-dialog modal-md" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 class="modal-title" id="myLoginLabel">登录</h4>
+                    </div>
+                    <form  class="form-horizontal" >
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">登录名：</label>
+                                <div class="col-sm-6">
+                                    <input class="form-control" type="text" name="login_name" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">密码：</label>
+                                <div class="col-sm-6">
+                                    <input class="form-control" type="password" name="password" />
+                                </div>
+                            </div>
+                            <div style="text-align:center">
+                                <span id="errMsg" style="color:red">${errMsg1 }</span>
+                                <span style="color:red">${errMsg2 }</span>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-warning" data-dismiss="modal" aria-label="Close">关&nbsp;&nbsp;闭</button>
+                            <button type="button" class="btn btn-info" onclick="doLogin()">登&nbsp;&nbsp;录</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!--页面头，登录注册部分结束-->
+
+            <div class="container-fluid banner">
+                <div class="container banner-contain">
+                    <div class="row">
+                        <p> 软件&bsol;Java&bsol;JavaSE\集合</p>
+                    </div>
+                    <div class="row">
+                        <p>map</p>
+                    </div>
+                    <div class="row">
+                        <button class="btn    btn-success  col-md-2">
+                            继续学习 | &nbsp;&nbsp; <i class="glyphicon glyphicon-star-empty">  </i>
+                        </button>
+                        <ul class="col-md-5">
+                            <li>点击量
+                                <p> 45571 </p>
+                            </li>
+                            <li> 课程时长
+                                <p>3小时21分</p>
+                            </li>
+                            <li> 综合评分
+                                <p>9.7</p>
+                            </li>
+                        </ul>
+                        <ul class="three-logo  col-md-4  col-md-offset-1 ">
+                            <li>
+                                <i class="icon iconfont icon-weixin"></i>
+                            </li>
+                            <li>
+                                <i class="icon iconfont icon-weibo"></i>
+                            </li>
+                            <li>
+                                <i class="icon iconfont icon-qq"></i>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-9">
+                        <div class="desp">简介：JAVA</div>
+                        <ul class="title-ul">
+                            <li class="current" name="ca">章节</li>
+                            <li name="comment">评价</li>
+                        </ul>
+                        <ul class="course-content margin-bottom-90" id="ca">
+<!--                        <ul class="course-content margin-bottom-90" id="chapter">-->
+<!--                        	<c:forEach items="${chapters}" var="chas">-->
+<!--	                            <li>-->
+<!--	                                <div class="row">-->
+<!--	                                    <div class="col-md-12 course-title">-->
+<!--	                                        <i class="icon  i-round iconfont icon-weibiaoti-"></i>-->
+<!--	                                        ${chas.title}-->
+<!--	                                        <span> ${chas.info} </span>-->
+<!--	                                        <i class="glyphicon glyphicon-triangle-bottom pull-right arrow"></i>-->
+<!--	                                    </div>-->
+<!--	                                    <ul class="lesson-title">-->
+<!--	                                    	&lt;!&ndash; 此处为资源列表 &ndash;&gt;-->
+<!--	                                    	<c:forEach items="${chas.resources}" var="res">-->
+<!--		                                        <li class="col-md-11 col-md-offset-1 padding-10 ">-->
+<!--		                                            <span class="glyphicon glyphicon-triangle-right icon-right"> </span>-->
+<!--		                                            <a onclick="checkResource(${res.id},'${chas.title}-${res.title}')">-->
+<!--		                                            	<span> ${res.title}-->
+<!--			                                            	(需要${res.cost_number}点-->
+<!--			                                            	<c:if test="${res.cost_type == 0}">积分</c:if>-->
+<!--			                                            	<c:if test="${res.cost_type == 1}">金币</c:if>)-->
+<!--		                                            	</span>-->
+<!--		                                            </a>-->
+<!--		                                        </li>-->
+<!--		                                     </c:forEach>-->
+<!--	                                    </ul>-->
+<!--	                                </div>-->
+<!--	                            </li>-->
+<!--                        	</c:forEach>-->
+                        </ul>
+                        <ul id="comment" class="margin-bottom-90">
+                           <!-- 此处为该章节相关资源评论展示区 -->
+	                           <li>
+					            <div class="row comment-area">
+					                <div class="col-md-1"><img src="/images/user.jpeg" alt="" class="img-circle " width="35" height="35"></div>
+					                <div class="col-md-10 comment-info">
+					                    <div class="col-md-12">admin</div>
+					                    <div class="col-md-12">挺有用的</div>
+					                    <div class="col-md-12">
+					                        <div>
+					                            时间：<span>22小时前</span>
+					                        </div>
+					                        <div>
+					                            <span>举报</span>
+					                            <span><i class="icon iconfont icon-zan"></i>12</span>
+					                        </div>
+					                    </div>
+					                </div>
+					            </div>
+					          </li>
+                            <li>
+                                <div class="load-more">
+                                    <span onclick="swal('正在加载...');">加载更多...</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="row teacher-msg">
+                            <div class="col-md-12 course-title padding-30">推荐课程</div>
+                        </div>
+                        <!-- 此处为推荐课程展示区 -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" id="us" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <h4 class="modal-title" id="myModalLabel">个人信息</h4>
+                        </div>
+                        <form action="#" class="form-horizontal" method="post">
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">旧密码：</label>
+                                    <div class="col-sm-6">
+                                        <input class="form-control" type="text" name="password" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">新密码：</label>
+                                    <div class="col-sm-6">
+                                        <input class="form-control" type="password" name="newPassword" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">确认密码：</label>
+                                    <div class="col-sm-6">
+                                        <input class="form-control" type="password" name="rePassword" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">昵称：</label>
+                                    <div class="col-sm-6">
+                                        <input class="form-control" type="text" name="nickname" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">邮箱：</label>
+                                    <div class="col-sm-6">
+                                        <input class="form-control" type="text" name="email" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-info" data-dismiss="modal" aria-label="Close">关&nbsp;&nbsp;闭</button>
+                                <button type="reset" class="btn btn-info">重&nbsp;&nbsp;置</button>
+                                <button type="submit" class="btn btn-info">确&nbsp;&nbsp;定</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footer-cc">
+        <div class="footer">
+            <div>
+                版权所有： 南京Java
+            </div>
+            <div>
+                Copyright © 2017 imooc.com All Rights Reserved | 京ICP备
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

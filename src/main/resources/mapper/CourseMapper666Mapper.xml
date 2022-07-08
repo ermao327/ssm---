@@ -1,0 +1,52 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.CourseDao666">
+
+
+    <select id="selectByCourseName" resultType="com.entity.Course">
+        select * from t_course
+        <where>
+            1=1
+        <if test="course_name != null and course_name != ''">
+            and course_name like concat("%",#{course_name},"%")
+        </if>
+        </where>
+        order by create_date desc
+    </select>
+
+    <select id="selectByCourseTypeId" resultType="com.entity.Course">
+        select * from t_course where course_type_id in (
+            select id from t_course_type where parent_id in (
+                select id from t_course_type
+                where parent_id = #{ctid})) order by create_date desc
+    </select>
+
+    <select id="selectByCourseTypeId2" resultType="com.entity.Course">
+        select * from t_course
+        <where>
+            <if test="course_type_id != null">
+                course_type_id = #{ctid}
+            </if>
+        </where>
+        order by create_date desc
+    </select>
+
+
+    <resultMap id="course" type="com.entity.Course">
+        <id column="id" property="id"/>
+        <result column="course_name" property="course_name"/>
+        <result column="author" property="author"/>
+        <result column="click_number" property="click_number"/>
+        <result column="create_date" property="create_date"/>
+        <result column="cover_image_url" property="cover_image_url"/>
+        <result column="recommendation_grade" property="recommendation_grade"/>
+        <association property="courseType" javaType="CourseType">
+        <result column="type_name" property="type_name"/>
+        <result column="status" property="status"/>
+        </association>
+    </resultMap>
+    <select id="findTop15" resultMap="course">
+        select c.id cid,c.course_name,c.author,c.cover_image_url,c.click_number,c.recommendation_grade,ct.id,ct.type_name from t_course c,t_course_type ct where c.course_type_id=ct.id order by c.click_number desc limit 15
+    </select>
+
+
+</mapper>

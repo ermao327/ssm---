@@ -1,0 +1,11 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.FrontUserDao">
+    <insert id="insertPointToGold" >
+        insert into t_gold_points(point_count,gold_count,info,create_date)
+         values(#{point_count},#{gold_count},#{info1},#{create_date})
+    </insert>
+
+    <select id="selectAllRecords" resultType="com.entity.GoldPoints">
+        select * from t_gold_points
+    </select>
+</mapper>

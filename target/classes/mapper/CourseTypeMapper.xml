@@ -1,0 +1,74 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.CourseTypeDao">
+    <insert id="insertCourseType">
+        insert into t_course_type (type_name, parent_id, status)
+        values (#{type_name}, #{parent_id}, #{status})
+    </insert>
+    <update id="updateStatus">
+        update t_course_type
+        set status=#{status}
+        where id = #{id}
+    </update>
+    <update id="updateCourseTypeName">
+        update t_course_type
+        set type_name=#{type_name},
+            parent_id=#{parent_id}
+        where id = #{id}
+    </update>
+
+    <update id="updateCourseType">
+        update t_course_type
+        set type_name=#{type_name},
+            parent_id=#{parent_id}
+        where type_name = #{type_name}
+    </update>
+
+    <select id="selectByAll" resultType="CourseType">
+        select *
+        from t_course_type
+        <where>
+            <if test="parent_id != null &amp;&amp; parent_id != 0">
+                and parent_id = #{parent_id}
+            </if>
+        </where>
+    </select>
+    <select id="selectCourseTypeById" resultType="com.entity.CourseType">
+        select *
+        from t_course_type
+        where id = #{id}
+    </select>
+    <select id="selectCourseTypeByParentId" resultType="com.entity.CourseType">
+        select id
+        from t_course_type
+        where id is not null
+    </select>
+    <select id="selectByName" resultType="com.entity.CourseType">
+        select *
+        from t_course_type
+        where type_name = #{type_name}
+    </select>
+    <select id="selectTypeChildren" resultMap="CourseTypeChildren">
+        select b.id  from t_course_type a left join t_course_type b on a.id=b.parent_id where a.id=#{id}
+    </select>
+    <resultMap id="CourseTypeChildren" type="courseType">
+        <id column="id" property="id"/>
+        <result column="type_name" property="type_name"/>
+        <result column="parent_id" property="parent_id"/>
+        <result column="status" property="status"/>
+        <collection property="childrens" ofType="courseType">
+            <id column="id" property="id"/>
+            <result column="type_name" property="type_name"/>
+            <result column="parent_id" property="parent_id"/>
+            <result column="status" property="status"/>
+        </collection>
+    </resultMap>
+
+
+
+
+<!--查子类-->
+<!--    select a.id,b.id from t_course_type a left join t_course_type b on a.parent_id=b.id
+    select a.id,b.id childrenid from t_course_type a left join t_course_type b on a.id=b.parent_id order by a.id
+    select b.id childrenid from t_course_type a left join t_course_type b on a.id=b.parent_id where a.id=1 -->
+
+</mapper>

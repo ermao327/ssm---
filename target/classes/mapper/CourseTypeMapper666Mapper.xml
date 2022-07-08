@@ -1,0 +1,47 @@
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dao.CourseTypeDao666">
+
+    <select id="selectAll" resultType="com.entity.CourseType"></select>
+
+    <select id="selectParentIdById" resultType="java.lang.Integer"></select>
+    <select id="findByParentId" resultType="com.entity.CourseType"></select>
+    <select id="selectCourseTypeById" resultType="com.entity.CourseType"></select>
+    <!--查询一级目录-->
+    <resultMap id="ct" type="CourseType">
+        <id column="id" property="id"/>
+        <result column="type_name" property="type_name"/>
+        <result column="parent_id" property="parent_id"/>
+        <!--select:查询子级用的sql语句；id:需要传递给子级查询的参数-->
+        <collection property="childrens" select="selectByParentId" column="id"/>
+        <collection property="courses" select="selectCourseByCourseId" column="id"/>
+    </resultMap>
+    <!--嵌套图片显示-->
+    <resultMap id="coursePic" type="com.entity.Course">
+        <id column="id" property="id"/>
+        <result column="course_name" property="course_name"/>
+        <result column="author" property="author"/>
+        <result column="cover_image_url" property="cover_image_url"/>
+        <result column="click_number" property="click_number"/>
+        <result column="course_type_id" property="course_type_id"/>
+    </resultMap>
+    <select id="selectCourseType" resultMap="ct">
+        select id,type_name,parent_id,status from t_course_type
+        where parent_id is null
+    </select>
+    <select id="selectByParentId" resultMap="ct">
+        select id,type_name,parent_id,status from t_course_type
+        <where>
+            parent_id=#{parentId}
+        </where>
+    </select>
+    <select id="selectCourseByCourseId" resultMap="coursePic">
+        select * from t_course
+        <where>
+            course_type_id = #{course_type_id}
+        </where>
+        order by click_number desc limit 0,4
+    </select>
+</mapper>

@@ -1,0 +1,14 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.NameForCourseIdDao666">
+
+    <select id="selectCourseIdByCourseName" resultType="com.entity.Course">
+        select * from t_course where course_name=#{courseName}
+
+    </select>
+    <select id="selectResource" resultType="com.entity.Resource">
+        select * from t_resource where chapter_id in(select id from t_chapter where course_id=#{courseId})
+    </select>
+    <select id="selectChapterByCourseId" resultType="com.entity.Chapter">
+        select * from t_chapter where course_id=#{courseId}
+    </select>
+</mapper>

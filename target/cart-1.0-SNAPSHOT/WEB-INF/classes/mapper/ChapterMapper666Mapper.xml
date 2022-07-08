@@ -1,0 +1,42 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.dao.ChapterDao666">
+    <insert id="insertNewChapter">
+        insert into t_chapter(course_id,title,info,create_date,status)
+        values (#{course_id},#{title},#{info},#{create_date},#{status})
+    </insert>
+    <update id="updateChapter">
+        update t_chapter set title=#{title},info=#{info} where id=#{id}
+    </update>
+    <update id="updateStatus">
+        update t_chapter set status=#{status} where id=#{id}
+    </update>
+
+    <select id="findAll" resultType="Chapter">
+        select id,title,info,create_date,course_id,status from t_chapter
+        <where>
+             1=1
+
+            <if test="begin_date != null ">
+                and create_date &gt;= #{begin_date}
+            </if>
+            <if test="end_date != null ">
+                and create_date &lt;= #{end_date}
+            </if>
+            <if test="title != null and title != ''">
+                and title like concat("%",#{title},"%")
+            </if>
+            <if test="info != null and info != ''">
+                and info like concat("%",#{info},"%")
+            </if>
+            <if test="status != ' ' and status != null">
+                and status = #{status}
+            </if>
+        </where>
+    </select>
+    <select id="findById" resultType="Chapter">
+        select id,title,info,create_date,course_id,status from t_chapter
+        where id = #{id}
+    </select>
+</mapper>

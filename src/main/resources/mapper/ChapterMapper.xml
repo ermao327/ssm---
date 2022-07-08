@@ -1,0 +1,33 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.ChapterDao">
+
+    <resultMap id="chapterTreeMap" type="Chapter">
+        <id column="id" property="id"/>
+        <result property="course_id" column="course_id"/>
+        <result property="title" column="title"/>
+        <result property="info" column="info"/>
+        <result property="status" column="status"/>
+        <collection property="resources" select="selectResourcesByChapterId" column="id"/>
+    </resultMap>
+
+    <resultMap id="resource" type="Resource">
+        <id column="id" property="id"/>
+        <result property="title" column="title"/>
+        <result property="path" column="path"/>
+        <result property="cover_image_url" column="cover_image_url"/>
+        <result property="click_count" column="click_count"/>
+        <result property="cost_type" column="cost_type"/>
+        <result property="cost_number" column="cost_number"/>
+        <result property="user_id" column="user_id"/>
+        <result property="chapter_id" column="chapter_id"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <select id="showChapterFrontByCourseId" resultMap="chapterTreeMap">
+        select * from t_chapter cha where cha.course_id = #{course_id}
+    </select>
+
+    <select id="selectResourcesByChapterId" resultMap="resource">
+        select re.* from t_resource re where chapter_id = #{id} and status = 0
+    </select>
+</mapper>

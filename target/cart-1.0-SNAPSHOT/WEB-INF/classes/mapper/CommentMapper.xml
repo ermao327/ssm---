@@ -1,0 +1,94 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.CommentDao">
+    <select id="selectCommentByStatus" resultType="com.vo.CommentVo">
+        select * from t_comment where status=#{status}
+    </select>
+
+
+    <update id="updateCommentByStatus">
+        update t_comment set status=#{status} where id=#{id}
+    </update>
+
+    <select id="selectComment" resultType="com.vo.CommentVo">
+        select * from t_comment where status!=2
+    </select>
+
+    <select id="selectUserByID" resultType="com.entity.User">
+        select * from t_user where id=#{id}
+    </select>
+
+    <select id="selectPraiseCountByCommentId" resultType="int">
+        select comment_id from t_praise where comment_id=#{comment_id}
+    </select>
+
+    <insert id="sendComment">
+        insert into t_comment (context,resource_id)
+        values (#{context},#{resourceid})
+    </insert>
+
+
+    <insert id="send">
+        insert into t_comment (context)
+        values (#{context})
+    </insert>
+    <insert id="insertUserId">
+        insert into t_comment(user_id) values ({#user_id}) where status=2
+    </insert>
+
+
+
+
+
+
+    <select id="loadResComs" resultType="com.vo.CommentVo">
+        select * from t_comment where resource_id=#{resource_id}  and  status =0
+    </select>
+
+    <!--   评论审核条件查询-->
+    <select id="findComsCondition" resultType="com.vo.CommentVo">
+        select * from t_comment c join t_user u on c.user_id = u.id
+        <where>
+            <if test="login_name !=null and login_name !=''">
+                login_name=#{login_name}
+            </if>
+            <if test="begin_date !=null">
+                and c.create_date &gt;=#{begin_date}
+            </if>
+            <if test="end_date != null">
+                and c.create_date &lt;=#{end_date}
+            </if>
+            <if test="context !=null and context !=''" >
+                and context =#{context}
+            </if>
+            <if test="status !=null and status !='-1'">
+                and c.status =#{status}
+            </if>
+        </where>
+    </select>
+
+    <!--   评论管理条件查询-->
+    <select id="findByChapterIdCondition" resultType="com.vo.CommentVo">
+        select * from t_comment c join t_user u on c.user_id = u.id
+        <where>
+            <if test="login_name !=null and login_name !=''">
+                login_name=#{login_name}
+            </if>
+            <if test="begin_date !=null">
+                and  c.create_date &gt;=#{begin_date}
+            </if>
+            <if test="end_date != null">
+                and c.create_date &lt;=#{end_date}
+            </if>
+            <if test="context !=null and context !=''" >
+                and context =#{context}
+            </if>
+            <if test="status !=null and status !='-1'">
+                and c.status =#{status}
+            </if>
+            <if test="status !=null">
+                and c.status !=2
+            </if>
+        </where>
+
+    </select>
+</mapper>

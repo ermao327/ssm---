@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.CourseDao">
+
+    <resultMap type="Course" id="course">
+        <id property="id" column="id"/>
+        <result property="course_name" column="course_name"/>
+        <result property="author" column="author"/>
+        <result property="cover_image_url" column="cover_image_url"/>
+        <result property="create_date" column="create_date"/>
+        <result property="click_number" column="click_number"/>
+        <result property="status" column="status"/>
+        <result property="recommendation_grade" column="recommendation_grade"/>
+        <association property="courseType" javaType="CourseType">
+            <id property="id" column="id"/>
+            <result property="type_name" column="type_name"/>
+            <result property="parent_id" column="parent_id"/>
+            <result property="status" column="statues"/>
+        </association>
+    </resultMap>
+
+    <select id="selectCourses" resultMap="course">
+        select * from t_course c join t_course_type t on c.course_type_id = t.id
+        <where>
+            <if test="course_name!=null and course_name!=''">
+                c.course_name=#{course_name}
+            </if>
+            <if test="author!=null and author!=''">
+                and c.author=#{author}
+            </if>
+            <if test="status!=null and status!='-1'">
+                and c.status=#{status}
+            </if>
+            <if test="course_type_id!=null and course_type_id!='-1'">
+                and c.course_type_id=#{course_type_id}
+            </if>
+            <if test="st!=null">
+                and c.create_date &gt;= #{st}
+            </if>
+            <if test="ed!=null">
+                and c.create_date &lt;= #{ed}
+            </if>
+        </where>
+    </select>
+
+
+    <select id="selectAllCourses" resultMap="course">
+        select * from t_course c join t_course_type t on c.course_type_id = t.id
+    </select>
+
+    <insert id="insertCourseByCondition">
+        insert into t_course(course_name,author,cover_image_url,recommendation_grade,course_type_id,status)
+        values (#{course_name},#{author},#{cover_image_url},#{recommendation_grade},#{course_type_id},#{status})
+    </insert>
+
+    <select id="selectCourseByCourseId" resultType="Course">
+        select * from t_course where id = #{id}
+    </select>
+
+    <select id="selectCourseById" resultType="Course">
+        select * from t_course c join t_course_type t on c.course_type_id = t.id where c.id = #{id}
+    </select>
+
+    <update id="updateCourseById">
+        update t_course set status = #{status} where id = #{id}
+    </update>
+
+    <update id="updateCourseByCondition">
+        update t_course
+            <set>
+                <if test="course_name!=null">
+                    course_name = #{course_name}
+                </if>
+                <if test="author!=null">
+                    ,author = #{author}
+                </if>
+                <if test="cover_image_url!=null">
+                    ,cover_image_url = #{cover_image_url}
+                </if>
+                <if test="recommendation_grade!=null">
+                    ,recommendation_grade = #{recommendation_grade}
+                </if>
+                <if test="course_type_id!=null">
+                    ,course_type_id = #{course_type_id}
+                </if>
+            </set>
+            where id = #{id}
+    </update>
+
+    <select id="selectTop3ByCourseTypeId" resultMap="course">
+        select * from t_course where course_type_id = #{ctid} order by click_number desc limit 3
+    </select>
+
+
+    <select id="getCourseTypeList" resultType="CourseType"></select>
+    <select id="findCourseTypeById" resultType="CourseType"></select>
+    <select id="selectByCourseName" resultType="Course"></select>
+    <insert id="insertCourseType"></insert>
+    <update id="updateCourseTypeById"></update>
+    <select id="selectByCourseTypeId2" resultType="Course"></select>
+    <select id="findTop15" resultType="Course"></select>
+    <select id="findTop4" resultType="Course"></select>
+    <select id="selectCourse" resultType="Course"></select>
+    <select id="getCourseList" resultType="Course"></select>
+    <select id="getChapterList" resultType="Chapter"></select>
+
+
+
+
+
+    <select id="selectCourseTypes" resultType="com.entity.CourseType">
+        select * from t_course_type
+    </select>
+</mapper>

@@ -1,0 +1,147 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.ResourceDao">
+
+    <sql id="resource">
+    r.id as rid,
+    r.title as rtitle,
+    r.path as rpath,
+    r.original_name as roriginal_name,
+    r.file_size as rfile_size,
+    r.file_type as rfile_type,
+    r.create_date as rcreate_date,
+    r.cost_type as rcost_type,
+    r.cost_number as rcost_number,
+    r.user_id as ruser_id,
+    r.status as rstatus
+    </sql>
+
+    <sql id="user">
+    u.id as uid,
+    u.login_name as ulogin_name
+    </sql>
+
+
+    <sql id="resourceuser">
+        r.id as rid,
+    r.title as rtitle,
+    r.path as rpath,
+    r.original_name as roriginal_name,
+    r.cover_image_url as rcover_image_url,
+    r.file_size as rfile_size,
+    r.file_type as rfile_type,
+    r.create_date as rcreate_date,
+    r.cost_type as rcost_type,
+    r.cost_number as rcost_number,
+    r.user_id as ruser_id,
+    u.login_name as login_name,
+    r.status as rstatus
+
+    </sql>
+
+    <insert id="addFrontResource">
+            INSERT INTO `t_resource` ( `title`, `path`,  `original_name`, `file_size`, `file_type`, `cost_type`, `cost_number`, `chapter_id`)
+        VALUES (#{title}, #{path}, #{original_name}, #{file_size}, #{file_type}, #{cost_type}, #{cost_number},#{chapter_id})
+    </insert>
+
+    <update id="modifyStatus">
+        update t_resource
+        set status=#{status}
+        where id = #{id}
+    </update>
+
+
+    <update id="modifyFrontResource">
+        update t_resource
+        set title=#{title}
+        ,path=#{path}
+        ,original_name=#{original_name}
+        ,file_type=#{file_type}
+        ,cost_type=#{cost_type}
+        ,cost_number=#{cost_number}
+        ,chapter_id=#{chapter_id}
+        ,file_size=#{file_size}
+        where id = #{id}
+    </update>
+
+    <delete id="removeFrontResource">
+        delete from t_resource
+        where id = #{id}
+    </delete>
+
+
+    <resultMap id="ResourceUser" type="Resource">
+        <id column="rid" property="id"/>
+        <result column="rtitle" property="title"/>
+        <result column="rpath" property="path"/>
+        <result column="roriginal_name" property="original_name"/>
+        <result column="rcover_image_url" property="cover_image_url"/>
+        <result column="rfile_size" property="file_size"/>
+        <result column="rfile_type" property="file_type"/>
+        <result column="rcreate_date" property="create_date"/>
+        <result column="rcost_type" property="cost_type"/>
+        <result column="rcost_number" property="cost_number"/>
+        <result column="ruser_id" property="user_id"/>
+        <result column="rstatus" property="status"/>
+        <association property="user" javaType="User">
+            <id column="uid" property="id"/>
+            <result column="ulogin_name" property="login_name"/>
+        </association>
+    </resultMap>
+
+    <select id="selectByAll" resultMap="ResourceUser">
+        SELECT
+        <include refid="resourceuser"/>
+        FROM
+        t_resource r join t_user u on r.user_id = u.id
+        <where>
+        <if test="title != null and title != ''">
+            AND r.title= #{title}
+        </if>
+        <if test="file_type != &quot;all&quot;  ">
+            AND r.file_type= #{file_type}
+        </if>
+        <if test="status !=999 ">
+            AND r.status = #{status}
+        </if>
+        <if test="login_name != null and login_name != ''">
+            AND u.login_name = #{login_name}
+        </if>
+        <if test="create_start_date !=null ">
+            AND r.create_date &gt;= #{create_start_date}
+        </if>
+            <if test="create_end_date !=null ">
+                AND r.create_date &lt;= #{create_end_date}
+            </if>
+        </where>
+    </select>
+    <select id="selectUserAll" resultType="User">
+        SELECT
+        *
+        FROM
+        t_user
+    </select>
+    <select id="queryResource" resultMap="ResourceUser">
+        SELECT
+        <include refid="resourceuser"/>
+        FROM
+        t_resource r join t_user u on r.user_id = u.id order by r.create_date
+    </select>
+    <select id="selectCourseName" resultType="Course">
+        SELECT
+            course_name
+        FROM
+        t_course
+    </select>
+    <select id="selectChapter" resultType="com.entity.Chapter">
+        select a.id,a.title from t_chapter a join t_course b  on a.course_id=b.id  where b.course_name=#{course_name}
+    </select>
+    <select id="selectpath" resultType="java.lang.String">
+        select path from t_resource where id=#{id}
+    </select>
+    <select id="selectOriginal_name" resultType="java.lang.String">
+        select original_name from t_resource where id=#{id}
+    </select>
+    <select id="selectname" resultType="java.lang.String">
+        select original_name from t_resource where id=2
+    </select>
+</mapper>

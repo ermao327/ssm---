@@ -1,0 +1,35 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.UserLoginDao666">
+    <update id="updateUserInfoByid">
+        update t_user
+        <set>
+
+            <if test="nickname!=null">
+                nickname=#{nickname},
+            </if>
+            <if test="password!=null">
+                password=#{password},
+            </if>
+            <if test="email!=null">
+                email=#{email}
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+
+    <select id="findUserByLogin_name" resultType="com.entity.User">
+        select * from t_user where login_name=#{login_name}
+    </select>
+    <select id="findAllUsers" resultType="com.entity.User">
+
+    </select>
+    <select id="findUserByid" resultType="com.entity.User">
+        select * from t_user where id=#{id}
+    </select>
+    <select id="findUsernameByid" resultType="java.lang.String">
+
+    </select>
+    <select id="findUseridByUserName" resultType="java.lang.Integer">
+
+    </select>
+</mapper>
